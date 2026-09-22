@@ -48,11 +48,9 @@ public class MORTARTeleop extends LinearOpMode {
         //Booleans
         boolean shooterOn = true;
         boolean OnOffShooter = false;
-        boolean nextSlot = false;
         boolean ableToSwitchMode = true;
         boolean autoAiming = false;
         boolean ableToAim = true;
-        boolean shootingAll = false;
         //Modes
         String driveMode = "FAST";
         //Numbers
@@ -112,40 +110,11 @@ public class MORTARTeleop extends LinearOpMode {
                     Stop(LFront, RFront, LBack, RBack);
                     autoAiming = false;
                 }
-                else {
-                    //Manual Flywheel speed just in case ;)
-                    if (gamepad2.left_trigger != 0)
-                    {
-                        velocity = 830;
-                    }
-                    else
-                    {
-                        velocity = 635;
-                    }
-                }
+
             }
-            else if (autoAiming)
-            {
-                //Stops if there is no April Tag
-                Stop(LFront, RFront, LBack, RBack);
-                autoAiming = false;
-            }
-            else {
-                //Manual Flywheel speed just in case ;)
-                if (gamepad2.left_trigger != 0)
-                {
-                    velocity = 830;
-                }
-                else
-                {
-                    velocity = 635;
-                }
-            }
+
             //Driving
-            if(!autoAiming)
-            {
-                ApplyInputToMotors(gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, driveMode, LFront, RFront, LBack, RBack);
-            }
+
             //Aiming
             if(ableToAim)
             {
@@ -160,51 +129,12 @@ public class MORTARTeleop extends LinearOpMode {
                     autoAiming = false;
                 }
             }
-            else
-            {
-                if(gamepad1.left_trigger == 0)
-                {
-                    ableToAim = true;
-                }
-            }
+
             //Shooter
-            if (gamepad2.a)
-            {
-                ShootAllBalls(this, outtakeFeeder, sorter);
-            }
+
             //Feed Shooter
-            if (!sorter.isBusy())
-            {
-                if (gamepad2.right_trigger > 0) {
-                    outtakeFeeder.setPosition(0.75);
-                } else {
-                    outtakeFeeder.setPosition(0);
-                }
-            }
-            else
-            {
-                if (gamepad2.right_trigger > 0) {
-                    outtakeFeeder.setPosition(0.75);
-                } else {
-                    outtakeFeeder.setPosition(0);
-                }
-            }
-            //Shooter On Off
-            if(!OnOffShooter)
-            {
-                if(gamepad2.x)
-                {
-                    OnOffShooter = true;
-                    shooterOn = !shooterOn;
-                }
-            }
-            else
-            {
-                if(!gamepad2.x)
-                {
-                    OnOffShooter = false;
-                }
-            }
+
+
             //Intake
             if(gamepad1.right_bumper)
             {
@@ -237,63 +167,11 @@ public class MORTARTeleop extends LinearOpMode {
             }
 
             //Moves the sorter to the next slot with no skipping
-            if(!nextSlot)
-            {
-                if(gamepad2.dpad_right)
-                {
-                    nextSlot = true;
-                    RotateMotorToNextSlotEncoder(sorter, false);
-                } else if (gamepad2.y) {
-                    nextSlot = true;
-                    RotateMotorToNextHalfSlotEncoder(sorter);
 
-                } else if (gamepad2.dpad_left) {
-                    nextSlot = true;
-                }
-
-
-            }
-            else
-            {
-                if(!gamepad2.dpad_right && !gamepad2.y && !gamepad2.dpad_left)
-                {
-                    nextSlot = false;
-                }
-            }
 
             //Apply Powers
             //Sorter Power
-            if(gamepad2.dpad_up)//Manual Control
-            {
-                sorter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                sorter.setPower(.1);
-            } else if (gamepad2.dpad_down)//Manual Control
-            {
-                sorter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                sorter.setPower(-.1);
-            } else if (gamepad2.b)//Reset Sorter Encoder
-            {
-                sorter.setTargetPosition(0);
-                sorter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            }
-            else
-            {
-                if(sorter.getMode().equals(DcMotor.RunMode.RUN_USING_ENCODER))//Stops supplying power to Sorter when in manual Mode
-                {
-                    sorter.setPower(0);
-                }
-                else//Always in Run to Position Mode
-                {
-                    if(sorter.getCurrentPosition() != sorter.getTargetPosition())//Applies power to the sorter when not at desired position
-                    {
-                        sorter.setPower(.75);
-                    }
-                    else
-                    {
-                        sorter.setPower(0);
-                    }
-                }
-            }
+
             //Applies power to the shooter
             if(shooterOn)
             {
@@ -382,78 +260,8 @@ public class MORTARTeleop extends LinearOpMode {
         RBack.setPower(0);
     }
     //Rotates to a specified slot
-    public static void RotateMotorToSlot(DcMotor sorter, int slot)
-    {
-        if(slot >= 2)
-        {
-            sorter.setTargetPosition(256);
-        } else if (slot <= 0) {
-            sorter.setTargetPosition(0);
-        }
-        else
-        {
-            sorter.setTargetPosition(128);
-        }
 
-    }
-    //Check and/or resets encoder
-    public static boolean CheckNextAngle(DcMotor sorter)
-    {
-        if(sorter.getTargetPosition() + 128 > 380)
-        {
-            sorter.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            return true;
-        }
-
-        return false;
-    }
-    //Rotates to a specified angle
-    public static void RotateMotorToAngle(DcMotor sorter, int angle)
-    {
-        sorter.setTargetPosition(angle);
-    }
-    //Rotates to the next slot using encoder ticks
-    public static void RotateMotorToNextSlotEncoder(DcMotor sorter, boolean inverse)
-    {
-        sorter.setPower(.75);
-        if(!inverse)
-        {
-            sorter.setTargetPosition(sorter.getTargetPosition() + 128);
-
-            sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
-        else
-        {
-            sorter.setTargetPosition(sorter.getTargetPosition() - 128);
-
-            sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        }
-    }
-    //Rotates to the next slot using encoder ticks
-    public static void RotateMotorToNextHalfSlotEncoder(DcMotor sorter)
-    {
-        sorter.setTargetPosition(sorter.getTargetPosition() + 66);
-        sorter.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
     //Shoots all three balls in sequential order
-    public static void ShootAllBalls(LinearOpMode opmode, Servo outtakeFeeder, DcMotor sorter)
-    {
-        outtakeFeeder.setPosition(0.75);
-        opmode.sleep(250);
-        outtakeFeeder.setPosition(0);
-        opmode.sleep(300);
-        RotateMotorToNextSlotEncoder(sorter, false);
-        opmode.sleep(500);
-        outtakeFeeder.setPosition(0.75);
-        opmode.sleep(250);
-        outtakeFeeder.setPosition(0);
-        opmode.sleep(300);
-        RotateMotorToNextSlotEncoder(sorter, false);
-        opmode.sleep(500);
-        outtakeFeeder.setPosition(0.75);
-        opmode.sleep(250);
-        outtakeFeeder.setPosition(0);
 
-    }
 }
 
